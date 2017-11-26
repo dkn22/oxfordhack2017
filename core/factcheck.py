@@ -102,7 +102,6 @@ def text_to_quotations(text):
     return citations
 
 
-
 # Search for Bing results given an entity and return found results.
 # @param[in]    query           query to Bing search.
 # @param[in]:   api_key         MicrosoftAPI_KEY.
