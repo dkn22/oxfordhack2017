@@ -1,7 +1,26 @@
+import sys
+import os
 import requests
 import urllib.request, urllib.parse, urllib.error
 import io
 from textblob import TextBlob
+from nltk.tokenize import RegexpTokenizer
+import numpy as np
+
+sys.path.append(os.getcwd())
+import models.cnn
+
+# Make political slant analysis based on self trained CNN.
+# @param[in]    df              articles data frame containing text.
+# @param[in]    vocab           vocabulary (words->numbers) dictionary.
+# @param[in]    model_filename  path to model file.
+def slant_analysis(df, vocab, model_filename):
+    docs = []
+    for article in df['text']:
+        docs.append(word_to_idx(document=article, vocab_dict=vocab))
+    model, graph = models.cnn.load(model_filename=model_filename)
+    df['slant'] = df['text'].apply(func=slant_single, args=(model, graph))
+    return df
 
 # Make text bias analysis built on data frame.
 # @param[in]    df      articles data frame containing text.
@@ -24,6 +43,16 @@ def image_bias_analysis(df, microsoft_api_key, attributes, max_attributes):
 def quote_check(df, microsoft_api_key):
     df['quotes_eval'] = df.apply(lambda x: quote_check_single(x['quotes'], microsoft_api_key), axis=1)
     return df
+
+# Analyse slant of single text.
+# @param[in]    text        text to analyse.
+# @param[in]    model       classification model.
+# @param[in]    graph       classification graph.
+def slant_single(text, model, graph):
+    with graph.as_default():
+        prediction = model.predict(np.array(docs))
+        classification = np.where(prediction >= 0.5, 'Right', 'Left')
+    return {'prediction': prediction, 'classification': classification}
 
 # Analyse single text bias using TextBlob.
 # @param[in]    text                text to analyse.
@@ -92,9 +121,14 @@ def quote_check_single(quotes, microsoft_api_key):
             quotes_eval.append(False)
     return quotes_eval
 
+
 def key_with_max_val(dict):
     v = list(dict.values())
     k = list(dict.keys())
     return k[v.index(max(v))]
 
 
+def word_to_idx(document, vocab_dict):
+    tokenizer = RegexpTokenizer(r'\w+')
+    document = tokenizer.tokenize(document)
+    return [vocab_dict[word] for word in document if word in vocab_dict.keys()]

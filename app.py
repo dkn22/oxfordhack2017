@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 import datetime
 import numpy as np
+import json
+
 import core.news
 import core.newshandler
-
 from models import cnn
 
 
@@ -19,18 +20,9 @@ with open('models/vocab.json', 'r') as f:
     data = json.loads(f.read())
 WORD2IDX = data
 
-
 app = Flask(__name__)
 
 example_api = "http://[hostname]/todo/api/scores/?keyword=Trump&datefrom=20171117&date=20171118&sources=bbc-news"
-
-tokenizer = RegexpTokenizer(r'\w+')
-
-
-def word_to_idx(document):
-    document = tokenizer.tokenize(document)
-    return [WORD2IDX[word] for word in document if word in WORD2IDX.keys()]
-
 
 @app.route('/todo/api/scores/',
            methods=['GET'],
@@ -66,31 +58,11 @@ def produce_entity(keyword,
                                        attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
     # Quotations analysis.
     df = core.news.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
+    # Political slant analysis.
+    df = core.news.slant_analysis(df=df, vocab=WORD2IDX, model_filename='models/model.json')
     # Return resulting data frame.
     articles_json = df.to_json(orient='records')
     return articles_json
-
-
-@app.route('/todo/api/slant/',
-           methods=['GET'])
-def predict_slant():
-    docs = []
-    for article in df['text']:
-        docs.append(word_to_idx(article))
-
-    model, graph = cnn.load()
-
-    with graph.as_default():
-
-        prediction = model.predict(np.array(docs))
-
-        classification = np.where(
-            prediction >= 0.5, 'Right', 'Left')
-
-        results = {'prediction': prediction.tolist(),
-                   'classification': classification.tolist()}
-
-        return jsonify(results)
 
 
 if __name__ == '__main__':
