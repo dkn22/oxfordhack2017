@@ -50,6 +50,8 @@ def produce_entity(keyword,
     # Image bias analysis.
     df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY, \
                                        attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
+    # Quote analysis.
+    df = core.factcheck.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
     # Return resulting data frame.
     articles_json = df.to_json(orient='records')
     return articles_json

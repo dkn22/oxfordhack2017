@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import json
 import newspaper
+import nltk
 
 # Getting news article data frame using NewsAPI.
 # @param[in]:   input_dict      input query containing q, tree, keywords,
@@ -38,6 +39,7 @@ def newsletter_data_frame(input_dict, news_api_key):
     for x in atr[1:]:
         x['source'] = x['source']['name']
         x['text'] = article_text(x['url'])
+        x['quotes'] = article_quotes(x['text'])
         df = df.append(x, ignore_index=True)
     return df
 
@@ -54,3 +56,19 @@ def article_text(article_url):
         print("URL: %s not found" % article_url)
     return ""
 
+
+# Get list of citations in single article using NLP analysis.
+# @param[in]    text            article plain text.
+def article_quotes(text):
+    quotation_sep = text.split('"')
+    citations = []
+    if len(text) == 0:
+        return []
+    for i in range(0, len(quotation_sep)):
+        if text[0] == '"' and i % 2 == 0:
+            citations.append(quotation_sep[i])
+        elif not text[0] == '"' and not i % 2 == 0:
+            citations.append(quotation_sep[i])
+        else:
+            pass
+    return citations

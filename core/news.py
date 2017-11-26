@@ -18,6 +18,12 @@ def image_bias_analysis(df, microsoft_api_key, attributes, max_attributes):
                                             args=(microsoft_api_key, attributes, max_attributes))
     return df
 
+# Evaluate URL by getting quotes out of article text and search bing for these.
+# @param[in]    df                  articles data frame containing text.
+# @param[in]:   microsoft_api_key   Microsoft Bing Search API_KEY.
+def quote_check(df, microsoft_api_key):
+    df['quotes_eval'] = df.apply(lambda x: quote_check_single(x['quotes'], microsoft_api_key), axis=1)
+    return df
 
 # Analyse single text bias using TextBlob.
 # @param[in]    text                text to analyse.
@@ -40,33 +46,55 @@ def image_bias_single(image_url, microsoft_api_key, attributes, max_attributes):
         'returnFaceAttributes': 'age,gender,smile,facialHair,glasses,emotion,hair,makeup'}
     path_to_face_api = '/face/v1.0/detect'
     # Get image classification and parse response.
-    with urllib.request.urlopen(image_url) as url:
-        img_data = io.BytesIO(url.read())
     try:
+        url = urllib.request.urlopen(image_url)
+        img_data = io.BytesIO(url.read())
         response = requests.post(uri_base + path_to_face_api,
                                  data=img_data,
                                  headers=headers,
                                  params=params)
         parsed = response.json()
-    except Exception as e:
-        parsed = []
+    except urllib.error.URLError:
+        print("image_bias_single(): Could not open URL %s" % image_url)
+        return "image_bias_single(): No faces received !"
     # Check response for feature.
-    if len(parsed) == 0:
-        return "no faces"
     # Analyse received results under given attributes.
-    else:
-        facial_tempdic = {}
+    try:
+        facial_temp_dic = {}
         for att in attributes:
-            facial_tempdic[att] = parsed[0]['faceAttributes'][att]
+            facial_temp_dic[att] = parsed[0]['faceAttributes'][att]
         for att in max_attributes:
             stats = parsed[0]['faceAttributes'][att]
-            facial_tempdic[att] = key_with_max_val(stats) + " " + str(stats[key_with_max_val(stats)])
-        return facial_tempdic
+            facial_temp_dic[att] = key_with_max_val(stats) + " " + str(stats[key_with_max_val(stats)])
+        return facial_temp_dic
+    except KeyError:
+        print("image_bias_single(): Bad parsed string")
+        return "image_bias_single(): No faces received !"
 
+# Quotes check for single article.
+# @param[in]    quotes              list of quotes in article.
+# @param[in]:   microsoft_api_key   Microsoft Bing Search API_KEY.
+def quote_check_single(quotes, microsoft_api_key):
+    host = "api.cognitive.microsoft.com"
+    path = "/bing/v7.0/search"
+    headers = {'Ocp-Apim-Subscription-Key': microsoft_api_key}
+    conn = http.client.HTTPSConnection(host)
+    quotes_eval = []
+    for quote in quotes:
+        bing_query = urllib.parse.quote(string=quote)
+        conn.request("GET", path + "?q=" + bing_query, headers=headers)
+        response = conn.getresponse()
+        response_jason = json.loads(response.read().decode("utf8"))
+        try:
+            response_jason['webPages']['totalEstimatedMatches']
+            quotes_eval.append(True)
+        except KeyError:
+            quotes_eval.append(False)
+    return quotes_eval
 
-def key_with_max_val(d):
-    v = list(d.values())
-    k = list(d.keys())
+def key_with_max_val(dict):
+    v = list(dict.values())
+    k = list(dict.keys())
     return k[v.index(max(v))]
 
 
