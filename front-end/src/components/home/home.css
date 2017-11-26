@@ -1,0 +1,26 @@
+.root-container {
+    display: flex;
+    flex-direction: column;
+
+    margin-left: 128px;
+    margin-right: 128px;
+
+    padding: 64px;
+}
+
+.logo {
+    margin: 16px;
+}
+
+.search-bar {
+    margin-top: 48px;
+    margin-bottom: 48px;
+}
+
+.query-filters {
+    margin: 16px;
+}
+
+.result-list {
+    margin: 16px;
+}

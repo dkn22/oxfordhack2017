@@ -1,0 +1,37 @@
+.card-root {    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+
+    padding: 16px;
+
+    position: relative;
+
+    border-radius: 4px;
+    overflow: hidden;
+
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2), 0 3px 4px rgba(0,0,0,0.3);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+  
+.card-root:hover {
+    box-shadow: 0 12px 28px rgba(0,0,0,0.2), 0 8px 10px rgba(0,0,0,0.2);
+}
+
+.title {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.leftSide {
+    max-width: 400px;
+}
+
+.rightSide {
+    width: 100%;
+    margin-left: 16px;
+
+    background-color: "#fff";
+}

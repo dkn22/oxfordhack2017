@@ -1,0 +1,31 @@
+body, html, #root {
+  width: 100%;
+  
+  margin: 0;
+  padding: 0;
+}
+
+html, #root {
+  overflow-x: hidden;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: #333;
+}
+
+.text-unselectable {
+  -webkit-tap-highlight-color:  rgba(255, 255, 255, 0); 
+  
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;      
+  user-select: none;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+clickable:focus {
+  outline:none;
+}

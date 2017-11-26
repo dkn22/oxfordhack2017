@@ -1,0 +1,17 @@
+{
+    "data": [
+        {
+            "urlToImage":"https://ichef.bbci.co.uk/news/1024/cpsprodpb/1636/production/_98568650_p05lp7sn.jpg",
+            "source":"BBC News",
+            "title":"What does Asia want from US President Donald Trump?",
+            "description": "Donald Trump is due to visit five Asian countries on his first tour of the region as US President.",
+            "publishedAt":"2017-11-02T00:26:19Z",
+            "author":"https://www.facebook.com/bbcnews",
+            "url":"http://www.bbc.co.uk/news/av/world-asia-41827343/what-does-asia-want-from-us-president-donald-trump",
+            "slant": 0.8,
+            "e_at_pic": 0.25,
+            "text_bias": 0.8,
+            "quotes_eval": [0, 1, 1],
+            "quotes": ["Hello", "world"]
+        }]    
+}
