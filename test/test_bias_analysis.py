@@ -4,7 +4,6 @@ sys.path.append(os.getcwd())
 
 import core.newshandler
 import core.news
-import core.factcheck
 
 # API Keys.
 MICROSOFT_BING_API_KEY = 'cca69e754980473f81b0261ea2dde063'
@@ -30,5 +29,5 @@ if __name__ == '__main__':
     df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY, \
                                        attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
     # Quote analysis.
-    df = core.factcheck.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
+    df = core.news.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
     print(df)

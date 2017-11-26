@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import datetime
+import numpy as np
 import core.factcheck
 import core.news
 import core.newshandler
+
+from models import cnn
 
 
 # API Keys.
@@ -13,10 +16,21 @@ NEWS_API_KEY = 'c4dedaa7514f458d9f2700b76a678930'
 IMAGE_ATTRIBUTES = ['age', 'glasses', 'smile', 'gender']
 IMAGE_MAX_ATTRIBUTES = ['emotion', 'facialHair']
 
+with open('models/vocab.json', 'r') as f:
+    data = json.loads(f.read())
+WORD2IDX = data
+
 
 app = Flask(__name__)
 
 example_api = "http://[hostname]/todo/api/scores/?keyword=Trump&datefrom=20171117&date=20171118&sources=bbc-news"
+
+tokenizer = RegexpTokenizer(r'\w+')
+
+
+def word_to_idx(document):
+    document = tokenizer.tokenize(document)
+    return [WORD2IDX[word] for word in document if word in WORD2IDX.keys()]
 
 
 @app.route('/todo/api/scores/',
@@ -44,17 +58,38 @@ def produce_entity(keyword,
                   'country': [] if not country else country,
                   'tree': 'everything',
                   'sortBy': 'popularity'}
-    df = core.newshandler.newsletter_data_frame(input_dict=input_data, news_api_key=NEWS_API_KEY)
+    df = core.newshandler.newsletter_data_frame(
+        input_dict=input_data, news_api_key=NEWS_API_KEY)
     # Text bias analysis.
     df = core.news.text_bias_analysis(df=df)
     # Image bias analysis.
-    df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY, \
+    df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY,
                                        attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
-    # Quote analysis.
-    df = core.factcheck.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
     # Return resulting data frame.
     articles_json = df.to_json(orient='records')
     return articles_json
+
+
+@app.route('/todo/api/slant/',
+           methods=['GET'])
+def predict_slant():
+    docs = []
+    for article in df['text']:
+        docs.append(word_to_idx(article))
+
+    model, graph = cnn.load()
+
+    with graph.as_default():
+
+        prediction = model.predict(np.array(docs))
+
+        classification = np.where(
+            prediction >= 0.5, 'Right', 'Left')
+
+        results = {'prediction': prediction.tolist(),
+                   'classification': classification.tolist()}
+
+        return jsonify(results)
 
 
 if __name__ == '__main__':
