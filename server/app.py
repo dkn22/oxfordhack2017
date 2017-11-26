@@ -1,13 +1,18 @@
 from flask import Flask, render_template, request, jsonify
-import re
-
-import pandas as pd
-import requests
-import json
-
 import datetime
+import core.factcheck
+import core.news
+import core.newshandler
 
-from news import make_news_requ
+
+# API Keys.
+MICROSOFT_BING_API_KEY = 'cca69e754980473f81b0261ea2dde063'
+MICROSOFT_VISION_API_KEY = '4b5604997f8747448756700dfac8a51d'
+NEWS_API_KEY = 'c4dedaa7514f458d9f2700b76a678930'
+# Analysis constants.
+IMAGE_ATTRIBUTES = ['age', 'glasses', 'smile', 'gender']
+IMAGE_MAX_ATTRIBUTES = ['emotion', 'facialHair']
+
 
 app = Flask(__name__)
 
@@ -26,13 +31,12 @@ def produce_entity(keyword,
                    dateto,
                    country,
                    sources):
-
+    # Get user input from web interface.
     keyword = request.args.get('keyword')
     datefrom = request.args.get('datefrom')
     dateto = request.args.get('dateto')
     sources = request.args.get('sources')
     country = request.args.get('country')
-
     input_data = {'keywords': str(keyword).replace('%20', ' '),
                   'date': '' if not datefrom else datefrom,
                   'to': datetime.datetime.now().isoformat() if not dateto else dateto,
@@ -40,10 +44,15 @@ def produce_entity(keyword,
                   'country': [] if not country else country,
                   'tree': 'everything',
                   'sortBy': 'popularity'}
-    df = make_news_requ(input_data)
-
-    jsonified_articles = df.to_json(orient='records')
-    return jsonified_articles
+    df = core.newshandler.newsletter_data_frame(input_dict=input_data, news_api_key=NEWS_API_KEY)
+    # Text bias analysis.
+    df = core.news.text_bias_analysis(df=df)
+    # Image bias analysis.
+    df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY, \
+                                       attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
+    # Return resulting data frame.
+    articles_json = df.to_json(orient='records')
+    return articles_json
 
 
 if __name__ == '__main__':
