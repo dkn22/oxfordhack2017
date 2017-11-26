@@ -7,7 +7,6 @@ import core.news
 import core.newshandler
 from models import cnn
 
-
 # API Keys.
 MICROSOFT_BING_API_KEY = 'cca69e754980473f81b0261ea2dde063'
 MICROSOFT_VISION_API_KEY = '4b5604997f8747448756700dfac8a51d'
