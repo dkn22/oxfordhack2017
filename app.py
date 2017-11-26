@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import datetime
 import numpy as np
-import core.factcheck
 import core.news
 import core.newshandler
 
@@ -65,6 +64,8 @@ def produce_entity(keyword,
     # Image bias analysis.
     df = core.news.image_bias_analysis(df=df, microsoft_api_key=MICROSOFT_VISION_API_KEY,
                                        attributes=IMAGE_ATTRIBUTES, max_attributes=IMAGE_MAX_ATTRIBUTES)
+    # Quotations analysis.
+    df = core.news.quote_check(df=df, microsoft_api_key=MICROSOFT_BING_API_KEY)
     # Return resulting data frame.
     articles_json = df.to_json(orient='records')
     return articles_json
