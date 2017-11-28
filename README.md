@@ -8,4 +8,4 @@ Our frontend was written in React and on the backend, we had a Flask REST API to
 
 The political bias classifier is a [Multi-size Convolutional Neural Net](https://arxiv.org/pdf/1603.04513.pdf) trained on [Congressional Records](http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/33501), with text transformed to word embeddings trained on Google News . You can also find a logistic regression model trained on the bag-of-words representation of the speeches in the models folder.
 
-If you wish to help us drive this idea forward, please [get in touch](nguyendatkhac@gmail.com)!
+If you wish to help us drive this idea forward, please [get in touch](mailto:nguyendatkhac@gmail.com)!
